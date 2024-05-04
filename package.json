@@ -3,8 +3,13 @@
   "displayName": "JumpAnywhere",
   "description": "\"JumpAnywhere\" is a VSCode plugin designed to enhance code navigation by enabling developers to jump to any location in their codebase swiftly and accurately. Whether it's function definitions, variable declarations, or any specific line in the code, this plugin ensures speedy and efficient navigation in large projects, thus significantly improving productivity.",
   "version": "0.0.1",
+  "publisher": "HEKEH",
   "engines": {
-    "vscode": "^1.0.0"
+    "vscode": "^1.17.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HEKEH/JumpAnywhere"
   },
   "categories": [
     "Other"
@@ -45,6 +50,9 @@
     "@vscode/test-cli": "^0.0.8",
     "@vscode/test-electron": "^2.3.9",
     "eslint": "^8.57.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-prettier": "^4.2.1",
     "husky": "^8.0.0",
     "lint-staged": "^10.2.10",
     "prettier": "^2.8.8",
