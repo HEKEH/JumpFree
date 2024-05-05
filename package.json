@@ -1,7 +1,7 @@
 {
-  "name": "jumpanywhere",
-  "displayName": "JumpAnywhere",
-  "description": "\"JumpAnywhere\" is a VSCode plugin designed to enhance code navigation by enabling developers to jump to any location in their codebase swiftly and accurately. Whether it's function definitions, variable declarations, or any specific line in the code, this plugin ensures speedy and efficient navigation in large projects, thus significantly improving productivity.",
+  "name": "jump-anywhere",
+  "displayName": "Jump Anywhere",
+  "description": "\"Jump Anywhere\" is a VSCode plugin designed to enhance code navigation by enabling developers to jump to any location in their codebase swiftly and accurately. Whether it's function definitions, variable declarations, or any specific line in the code, this plugin ensures speedy and efficient navigation in large projects, thus significantly improving productivity.",
   "version": "0.0.1",
   "publisher": "HEKEH",
   "engines": {
@@ -19,12 +19,7 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
-    "commands": [
-      {
-        "command": "jumpanywhere.helloWorld",
-        "title": "Hello World"
-      }
-    ]
+    "commands": []
   },
   "scripts": {
     "vscode:prepublish": "pnpm run package",
