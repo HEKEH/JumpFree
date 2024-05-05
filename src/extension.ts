@@ -1,9 +1,9 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import { JumpLinkProvider } from './jump-link-provider';
-import { Commands, LANGUAGES } from './consts';
-import { jumpToLine } from './utils';
+import { JumpLinkProvider } from './infra/jump-link-provider';
+import { Commands, LANGUAGE_JUMP_TO_PATTERN_MAP } from './consts';
+import { jumpToLine } from './infra/jump-to-line';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -12,20 +12,24 @@ export function activate(context: vscode.ExtensionContext) {
   // This line of code will only be executed once when your extension is activated
   console.log('Congratulations, your extension "jumpanywhere" is now active!');
 
-  const linkProviders = LANGUAGES.map(language =>
-    vscode.languages.registerDocumentLinkProvider(
-      { scheme: 'file', language },
-      new JumpLinkProvider(),
-    ),
+  const linkProviders = Object.entries(LANGUAGE_JUMP_TO_PATTERN_MAP).map(
+    ([language, pattern]) =>
+      vscode.languages.registerDocumentLinkProvider(
+        { scheme: 'file', language },
+        new JumpLinkProvider({
+          pattern,
+          command: Commands.jumpTo,
+        }),
+      ),
   );
   context.subscriptions.push(...linkProviders);
 
   const jumpCommand = vscode.commands.registerCommand(
     Commands.jumpTo,
-    ({ targetLine }) =>
+    ({ target }) =>
       jumpToLine({
         editor: vscode.window.activeTextEditor,
-        targetLine,
+        targetLine: target,
       }),
   );
   context.subscriptions.push(jumpCommand);
