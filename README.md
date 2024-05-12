@@ -1,6 +1,6 @@
-# jump-anywhere README
+# jump-free README
 
-This is the README for your extension "jump-anywhere". After writing up a brief description, we recommend including the following sections.
+This is the README for your extension "jump-free". After writing up a brief description, we recommend including the following sections.
 
 ## Features
 

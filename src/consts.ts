@@ -1,5 +1,5 @@
 export enum Commands {
-  jumpTo = 'jumpAnywhere.jumpToCommand',
+  jumpTo = 'jumpFree.jumpToCommand',
 }
 
 const JS_JUMP_TO_PATTERN =

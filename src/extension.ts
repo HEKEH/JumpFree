@@ -10,7 +10,7 @@ import { jumpToLine } from './infra/jump-to-line';
 export function activate(context: vscode.ExtensionContext) {
   // Use the console to output diagnostic information (console.log) and errors (console.error)
   // This line of code will only be executed once when your extension is activated
-  console.log('Extension "jump-anywhere" is now active!');
+  console.log('Extension "jump-free" is now active!');
 
   const linkProviders = Object.entries(LANGUAGE_JUMP_TO_PATTERN_MAP).map(
     ([language, pattern]) =>
@@ -36,5 +36,5 @@ export function activate(context: vscode.ExtensionContext) {
 
 // This method is called when your extension is deactivated
 export function deactivate() {
-  console.log('Extension "jump-anywhere" is now deactivated!');
+  console.log('Extension "jump-free" is now deactivated!');
 }
