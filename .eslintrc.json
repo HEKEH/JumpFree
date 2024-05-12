@@ -28,6 +28,7 @@
   "plugins": ["@typescript-eslint", "prettier", "import"],
   "rules": {
     "prettier/prettier": "error",
+    "@typescript-eslint/no-unused-vars": "warn",
     "@typescript-eslint/no-non-null-assertion": "off",
     "@typescript-eslint/no-explicit-any": "off",
     "import/order": [

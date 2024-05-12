@@ -2,7 +2,7 @@
   "name": "jump-free",
   "displayName": "Jump Free",
   "description": "\"Jump Free\" is a VSCode plugin designed to enhance code navigation by enabling developers to jump to any location in their codebase swiftly and accurately. Whether it's function definitions, variable declarations, or any specific line in the code, this plugin ensures speedy and efficient navigation in large projects, thus significantly improving productivity.",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "publisher": "HEKEH",
   "engines": {
     "vscode": "^1.17.0"
@@ -22,21 +22,21 @@
     "commands": []
   },
   "scripts": {
-    "vscode:prepublish": "pnpm run package",
-    "compile": "webpack",
-    "watch": "webpack --watch",
-    "package": "webpack --mode production --devtool hidden-source-map",
-    "compile-tests": "tsc -p . --outDir out",
-    "watch-tests": "tsc -p . -w --outDir out",
-    "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
     "lint": "eslint src --ext ts",
     "test": "vscode-test",
     "prepare": "husky install",
     "preinstall": "npx only-allow pnpm"
   },
+  "dependencies": {
+    "@vscode/ripgrep": "^1.15.9"
+  },
   "devDependencies": {
     "@commitlint/cli": "^8.3.5",
     "@commitlint/config-conventional": "^8.3.4",
+    "@types/byline": "^4.2.36",
     "@types/mocha": "^10.0.6",
     "@types/node": "18.x",
     "@types/vscode": "^1.89.0",

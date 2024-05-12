@@ -20,12 +20,11 @@ export class JumpLinkProvider implements vscode.DocumentLinkProvider {
   provideDocumentLinks(document: vscode.TextDocument): vscode.DocumentLink[] {
     const links: vscode.DocumentLink[] = [];
     for (let i = 0; i < document.lineCount; i++) {
-      const lineText = document.lineAt(i).text.trim();
+      const lineText = document.lineAt(i).text;
 
       const match = this._pattern.exec(lineText);
       if (match !== null) {
-        const target = parseInt(match.groups![this._targetKey]) - 1;
-        console.log(target, 'target');
+        const target = match.groups![this._targetKey];
         const range = new vscode.Range(
           i,
           match.index,

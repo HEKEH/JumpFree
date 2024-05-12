@@ -3,14 +3,16 @@
 import * as vscode from 'vscode';
 import { JumpLinkProvider } from './infra/jump-link-provider';
 import { Commands, LANGUAGE_JUMP_TO_PATTERN_MAP } from './consts';
-import { jumpToLine } from './infra/jump-to-line';
+import { openFileAndJumpToLine } from './infra/open-file-and-jump-to-line';
+import { JumpManager } from './domain/jump-manager';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
   // Use the console to output diagnostic information (console.log) and errors (console.error)
   // This line of code will only be executed once when your extension is activated
   console.log('Extension "jump-free" is now active!');
+  const jumpManager = JumpManager.create(context);
 
   const linkProviders = Object.entries(LANGUAGE_JUMP_TO_PATTERN_MAP).map(
     ([language, pattern]) =>
@@ -25,11 +27,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   const jumpCommand = vscode.commands.registerCommand(
     Commands.jumpTo,
-    ({ target }) =>
-      jumpToLine({
-        editor: vscode.window.activeTextEditor,
-        targetLine: target,
-      }),
+    ({ target }) => jumpManager.jumpToTarget(target),
   );
   context.subscriptions.push(...linkProviders, jumpCommand);
 }
