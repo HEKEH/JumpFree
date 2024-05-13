@@ -27,8 +27,7 @@
     "watch": "tsc -watch -p ./",
     "lint": "eslint src --ext ts",
     "test": "vscode-test",
-    "prepare": "husky install",
-    "preinstall": "npx only-allow pnpm"
+    "prepare": "husky install"
   },
   "dependencies": {
     "@vscode/ripgrep": "^1.15.9"
