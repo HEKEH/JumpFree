@@ -1,71 +1,30 @@
-# jump-free README
+# "Jump Free" VSCode Plugin
 
-This is the README for your extension "jump-free". After writing up a brief description, we recommend including the following sections.
+## Introduction
+
+"Jump Free" is a VSCode extension that aims to link two pieces of code that have an inherent connection but cannot be directly jumped from one to the other. By simply writing "JumpFreeTo: xxx" and "JumpFreeTarget: xxx", you can swiftly navigate between distant or related sections of your codebase, enhancing your productivity and efficiency.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- **Association of Linked Code Blocks**: Link two code snippets that are related but don't necessarily provide a direct link.
 
-For example if there is an image subfolder under your extension project workspace:
+- **Code Navigation**: Easily navigate between associated code blocks by utilising the "JumpFreeTo: xxx" and "JumpFreeTarget: xxx" annotations.
 
-\!\[feature X\]\(images/feature-x.png\)
+## Usage
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+1. Open the file where you want to create a link.
+2. Write `JumpFreeTo: xxx` at the point from which you want to create the link.
+3. Write `JumpFreeTarget: xxx` at the point to which you want to jump.
+4. Use "Jump Free" plugin to jump between the created links. Just click on `JumpFreeTo: xxx`, it will take you to the place where `JumpFreeTarget: xxx` is written.
 
-## Requirements
+> Note: Ensure the `xxx` you write after `JumpFreeTo:` and `JumpFreeTarget:` matches. The plugin uses this to identify which blocks of code to associate.
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+## Installation
 
-## Extension Settings
+The plugin can be installed from the Visual Studio Code marketplace. Search for "Jump Free" and click on the install button.
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+## Feedback and Issues
 
-For example:
-
-This extension contributes the following settings:
-
-- `myExtension.enable`: Enable/disable this extension.
-- `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-- [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-- Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-- Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-- Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-- [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-- [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+If you have any feedback or if you come across any issues while using the "Jump Free" plugin, please feel free to raise an issue in our [GitHub repository](https://github.com/HEKEH/JumpFree). I will be more than happy to assist!
 
 **Enjoy!**
