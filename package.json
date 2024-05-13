@@ -1,7 +1,7 @@
 {
   "name": "jump-free",
   "displayName": "Jump Free",
-  "description": "\"Jump Free\" is a VSCode plugin designed to enhance code navigation by enabling developers to jump to any location in their codebase swiftly and accurately. Whether it's function definitions, variable declarations, or any specific line in the code, this plugin ensures speedy and efficient navigation in large projects, thus significantly improving productivity.",
+  "description": "\"Jump Free\" is a VSCode plugin designed to enhance code navigation by enabling developers to jump to any location in their codebase swiftly and accurately. Whether it's function definitions, variable declarations, or any specific line in the code, this plugin ensures speedy and efficient navigation in large projects, thus improving productivity.",
   "version": "0.1.0",
   "publisher": "HEKEH",
   "engines": {

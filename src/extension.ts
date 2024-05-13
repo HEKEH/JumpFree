@@ -2,8 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { JumpLinkProvider } from './infra/jump-link-provider';
-import { Commands, LANGUAGE_JUMP_TO_PATTERN_MAP } from './consts';
-import { openFileAndJumpToLine } from './infra/open-file-and-jump-to-line';
+import { Commands, JUMP_TO_PATTERN } from './consts';
 import { JumpManager } from './domain/jump-manager';
 
 // This method is called when your extension is activated
@@ -14,22 +13,19 @@ export async function activate(context: vscode.ExtensionContext) {
   console.log('Extension "jump-free" is now active!');
   const jumpManager = JumpManager.create(context);
 
-  const linkProviders = Object.entries(LANGUAGE_JUMP_TO_PATTERN_MAP).map(
-    ([language, pattern]) =>
-      vscode.languages.registerDocumentLinkProvider(
-        { scheme: 'file', language },
-        new JumpLinkProvider({
-          pattern,
-          command: Commands.jumpTo,
-        }),
-      ),
+  const linkProvider = vscode.languages.registerDocumentLinkProvider(
+    { scheme: 'file' },
+    new JumpLinkProvider({
+      pattern: JUMP_TO_PATTERN,
+      command: Commands.jumpTo,
+    }),
   );
 
   const jumpCommand = vscode.commands.registerCommand(
     Commands.jumpTo,
     ({ target }) => jumpManager.jumpToTarget(target),
   );
-  context.subscriptions.push(...linkProviders, jumpCommand);
+  context.subscriptions.push(linkProvider, jumpCommand);
 }
 
 // This method is called when your extension is deactivated

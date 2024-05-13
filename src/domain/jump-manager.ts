@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { JUMP_TARGET_PRIFIX } from '../consts';
+import { DEFAULT_EXCLUDE_FOLDERS, JUMP_TARGET_PRIFIX } from '../consts';
 import { findFileAndLine } from '../infra/find-file-and-line';
 import { openFileAndJumpToLine } from '../infra/open-file-and-jump-to-line';
 export class JumpManager {
@@ -30,7 +30,7 @@ export class JumpManager {
     };
     const rootPath = getActiveWorkspace();
     if (rootPath) {
-      return findFileAndLine(regExp, rootPath);
+      return findFileAndLine(regExp, rootPath, DEFAULT_EXCLUDE_FOLDERS);
     }
   }
   async jumpToTarget(target: string) {

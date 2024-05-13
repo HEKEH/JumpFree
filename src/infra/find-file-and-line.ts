@@ -5,7 +5,7 @@ import { rgPath } from '@vscode/ripgrep';
 export function findFileAndLine(
   regexp: RegExp,
   rootPath: string,
-  excludeFiles: string[] = ['**/node_modules/**'],
+  excludeFiles: string[],
 ): Promise<{ file: string; lineNumber: number }[]> {
   console.log('findFileAndLine start');
   // Prepare ripgrep's arguments
@@ -29,6 +29,9 @@ export function findFileAndLine(
     });
 
     rg.on('close', () => {
+      if (!data) {
+        return;
+      }
       const lines = data.trim().split('\n');
       console.log(lines, 'lines');
       let matches: { file: string; lineNumber: number }[];
