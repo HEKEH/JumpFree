@@ -23,7 +23,7 @@
 
 ## Installation
 
-The extension can be installed from the Visual Studio Code marketplace. Search for "Jump Free" and click on the install button.
+The extension can be installed from the Visual Studio Code marketplace. Search for "Jump Free" and click on the install button.You can also download it [here](https://marketplace.visualstudio.com/items?itemName=hekaigustav.jump-free).
 
 ## Feedback and Issues
 
