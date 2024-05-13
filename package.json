@@ -11,8 +11,17 @@
     "type": "git",
     "url": "https://github.com/HEKEH/JumpFree"
   },
+  "bugs": {
+    "url": "https://github.com/HEKEH/JumpFree/issues"
+  },
   "categories": [
     "Other"
+  ],
+  "keywords": [
+    "jump",
+    "free",
+    "navigation",
+    "anywhere"
   ],
   "activationEvents": [
     "*"
