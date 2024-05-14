@@ -6,14 +6,16 @@
   },
   "extends": [
     "eslint:recommended",
-    "plugin:@typescript-eslint/recommended",
     "prettier"
   ],
   "overrides": [
     {
-      "env": {
-        "node": true
-      },
+      "files": ["**/*.ts", "**/*.tsx"],
+      "extends": ["plugin:@typescript-eslint/recommended"],
+      "parser": "@typescript-eslint/parser",
+      "plugins": ["@typescript-eslint"]
+    },
+    {
       "files": [".eslintrc.{js,cjs}"],
       "parserOptions": {
         "sourceType": "script"
@@ -22,10 +24,9 @@
   ],
   "parserOptions": {
     "ecmaVersion": "latest",
-    "parser": "@typescript-eslint/parser",
     "sourceType": "module"
   },
-  "plugins": ["@typescript-eslint", "prettier", "import"],
+  "plugins": ["prettier", "import"],
   "rules": {
     "prettier/prettier": "error",
     "@typescript-eslint/no-unused-vars": "warn",
