@@ -35,8 +35,9 @@
     "prepublish": "npm run prepackage && npm run compile",
     "package": "ts-node ./scripts/vsce.ts package",
     "prepackage": "ts-node scripts/check-before-package.ts",
-    "compile": "tsc -p ./",
+    "compile": "npm run clean && tsc -p ./",
     "watch": "tsc -watch -p ./",
+    "clean": "rimraf dist",
     "lint": "eslint src --ext ts",
     "test": "vscode-test",
     "prepare": "husky install"
@@ -63,6 +64,7 @@
     "husky": "^8.0.0",
     "lint-staged": "^10.2.10",
     "prettier": "^2.8.8",
+    "rimraf": "^5.0.7",
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5",
