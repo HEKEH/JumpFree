@@ -2,6 +2,7 @@
 .vscode-test/**
 src/**
 .gitignore
+.env
 .yarnrc
 webpack.config.js
 vsc-extension-quickstart.md
