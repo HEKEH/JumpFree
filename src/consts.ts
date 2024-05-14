@@ -12,7 +12,6 @@ export const DEFAULT_EXCLUDE_FOLDERS = [
   '**/.git/**',
   '**/.vscode/**',
   '**/dist/**',
-  '**/.vscode/**',
   '**/.husky/**',
   '**/logs/**',
   '**/.idea/**',
