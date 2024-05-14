@@ -32,8 +32,9 @@
   },
   "scripts": {
     "publish": "ts-node ./scripts/vsce.ts publish",
+    "prepublish": "npm run prepackage && npm run compile",
     "package": "ts-node ./scripts/vsce.ts package",
-    "vscode:prepublish": "npm run compile",
+    "prepackage": "ts-node scripts/check-before-package.ts",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "lint": "eslint src --ext ts",
