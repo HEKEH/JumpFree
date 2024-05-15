@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { DEFAULT_TAG_KEY } from '../consts';
 
 export class JumpLinkProvider implements vscode.DocumentLinkProvider {
   private _command: string;
@@ -7,7 +8,7 @@ export class JumpLinkProvider implements vscode.DocumentLinkProvider {
   constructor({
     command,
     pattern,
-    targetKey = 'target',
+    targetKey = DEFAULT_TAG_KEY,
   }: {
     command: string;
     pattern: RegExp;

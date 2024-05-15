@@ -1,20 +1,21 @@
 import { spawn } from 'child_process';
 import os from 'os';
 import { rgPath } from '@vscode/ripgrep';
+import { FileLineItem } from '../types';
 
-export function findFileAndLine(
-  regexp: RegExp,
+export function findFileAndLines(
+  regExp: RegExp,
   rootPath: string,
   excludeFiles: string[],
-): Promise<{ file: string; lineNumber: number }[]> {
-  console.log('findFileAndLine start');
+): Promise<FileLineItem[]> {
+  console.log('findFileAndLines start');
   // Prepare ripgrep's arguments
   const args = [
     '-n', // Output line numbers
     '-uu', // Ignore .gitignore and .ignore
     // '--hidden', // Search hidden files and directories
     '-e',
-    regexp.source, // The pattern to search for
+    regExp.source, // The pattern to search for
     ...excludeFiles.flatMap(f => ['--glob', `!${f}`]), // Exclude files/folders
     rootPath, // Directory to search
   ];
@@ -29,26 +30,30 @@ export function findFileAndLine(
     });
 
     rg.on('close', () => {
+      console.log(data, 'rg close');
       if (!data) {
+        resolve([]);
         return;
       }
-      const lines = data.trim().split('\n');
-      console.log(lines, 'lines');
-      let matches: { file: string; lineNumber: number }[];
+      const findItems = data.trim().split('\n');
+      console.log(findItems, 'findItems');
+      let matches: FileLineItem[];
       if (os.platform() === 'win32') {
         // windows
-        matches = lines.map(line => {
-          const parts = line.split(':', 3);
+        matches = findItems.map(item => {
+          const parts = item.split(':', 3);
           const file = parts[0] + ':' + parts[1];
-          const lineNumber = Number(parts[2]);
-          return { file, lineNumber };
+          const lineNumber = parts[2];
+          const line = item.slice(file.length + lineNumber.length + 2);
+          return { file, lineNumber: Number(lineNumber), line };
         });
       } else {
-        matches = lines.map(line => {
-          const parts = line.split(':', 2);
+        matches = findItems.map(item => {
+          const parts = item.split(':', 2);
           const file = parts[0];
-          const lineNumber = Number(parts[1]);
-          return { file, lineNumber };
+          const lineNumber = parts[1];
+          const line = item.slice(file.length + lineNumber.length + 2);
+          return { file, lineNumber: Number(lineNumber), line };
         });
       }
       resolve(matches);
