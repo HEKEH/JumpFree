@@ -35,9 +35,8 @@
   },
   "scripts": {
     "publish": "ts-node ./scripts/vsce.ts publish",
-    "vscode:prepublish": "npm run prepackage",
+    "vscode:prepublish": "ts-node scripts/check-before-package.ts && npm run compile",
     "package": "ts-node ./scripts/vsce.ts package",
-    "prepackage": "ts-node scripts/check-before-package.ts && npm run compile",
     "compile": "npm run clean && tsc -p ./",
     "postcompile": "ts-node scripts/check-after-compile.ts",
     "watch": "npm run clean && tsc -watch -p ./",
