@@ -2,9 +2,9 @@ import * as vscode from 'vscode';
 import { JumpManager } from '../domain/jump-manager';
 
 export class FileWatcher {
-  private _jumpManager!: JumpManager;
+  private _jumpManager: JumpManager;
   private _watcher = vscode.workspace.createFileSystemWatcher('**/*');
-  init({ jumpManager }: { jumpManager: JumpManager }) {
+  constructor({ jumpManager }: { jumpManager: JumpManager }) {
     this._jumpManager = jumpManager;
     this._watchFileChange();
     this._watchFileDelete();

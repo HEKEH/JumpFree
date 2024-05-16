@@ -6,6 +6,7 @@ export const DEFAULT_EXCLUDED_FILES_PATTERN = [
   '**/.husky/**',
   '**/logs/**',
   '**/.idea/**',
+  '**/.next/**',
 ];
 
 export * from './commands';
