@@ -46,7 +46,8 @@
     "prepare": "husky install"
   },
   "dependencies": {
-    "@vscode/ripgrep": "^1.15.9"
+    "@vscode/ripgrep": "^1.15.9",
+    "minimatch": "^9.0.4"
   },
   "devDependencies": {
     "@commitlint/cli": "^8.3.5",
