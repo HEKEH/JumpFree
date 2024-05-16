@@ -6,23 +6,34 @@ import {
 import { findFileAndLines } from '../infra/find-file-and-lines';
 import { JumpTargetItem } from '../types';
 
+/**
+ * Retrieves a list of JumpTargetItem objects from the specified root path.
+ *
+ * @param rootPath - The root directory path to search for jump targets.
+ * @param excludedFilesPattern - An array of patterns to exclude certain files from the search.
+ *
+ * @returns An array of JumpTargetItem objects, each containing the file path, line number, and tag of a jump target.
+ */
 export async function getJumpTargetItemList(
   rootPath: string,
-  exludedFilesPattern: Array<string>,
-) {
+  excludedFilesPattern: Array<string>,
+): Promise<JumpTargetItem[]> {
   try {
     const fileAndLines = await findFileAndLines(
       JUMP_TARGET_PATTERN_FOR_RIPGREP,
       rootPath,
-      exludedFilesPattern,
+      excludedFilesPattern,
     );
+
     return fileAndLines
       .map(({ file, lineNumber, line }) => {
         const tag = line.match(JUMP_TARGET_PATTERN)?.groups?.[DEFAULT_TAG_KEY];
+
         if (!tag) {
           console.error(`could not find tag from ${line}`);
           return;
         }
+
         return {
           file,
           lineNumber,
