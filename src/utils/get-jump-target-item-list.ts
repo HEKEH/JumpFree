@@ -8,13 +8,13 @@ import { JumpTargetItem } from '../types';
 
 export async function getJumpTargetItemList(
   rootPath: string,
-  exludedFolders: Array<string>,
+  exludedFilesPattern: Array<string>,
 ) {
   try {
     const fileAndLines = await findFileAndLines(
       JUMP_TARGET_PATTERN_FOR_RIPGREP,
       rootPath,
-      exludedFolders,
+      exludedFilesPattern,
     );
     return fileAndLines
       .map(({ file, lineNumber, line }) => {

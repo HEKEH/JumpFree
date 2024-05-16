@@ -4,6 +4,9 @@ import * as vscode from 'vscode';
 import { JumpLinkProvider } from './infra/jump-link-provider';
 import { Commands, JUMP_TO_PATTERN } from './consts';
 import { JumpManager } from './domain/jump-manager';
+import { JumpFreeWatcher } from './watcher';
+
+const jumpFreeWatcher = new JumpFreeWatcher();
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -12,6 +15,8 @@ export async function activate(context: vscode.ExtensionContext) {
   // This line of code will only be executed once when your extension is activated
   console.log('Extension "jump-free" is now active!');
   const jumpManager = await JumpManager.create();
+
+  jumpFreeWatcher.init({ jumpManager });
 
   const linkProvider = vscode.languages.registerDocumentLinkProvider(
     { scheme: 'file' },
@@ -31,4 +36,5 @@ export async function activate(context: vscode.ExtensionContext) {
 // This method is called when your extension is deactivated
 export function deactivate() {
   console.log('Extension "jump-free" is now deactivated!');
+  jumpFreeWatcher.dispose();
 }
