@@ -3,13 +3,28 @@ import { getRootPath } from '../infra/get-root-path';
 import { JumpTargetItem } from '../types';
 import { getJumpTargetItemList } from '../utils/get-jump-target-item-list';
 
+type SimplifiedJumpTargetItem = Omit<JumpTargetItem, 'file'>;
+
 export class JumpTargetCollection {
-  private _itemList: JumpTargetItem[] = [];
+  private _file2ItemsMap: {
+    [filePath: string]: SimplifiedJumpTargetItem[];
+  } = {};
   findTargetByTag(tag: string): JumpTargetItem | undefined {
-    return this._itemList.find(item => item.tag === tag);
+    for (const filePath in this._file2ItemsMap) {
+      const found = this._file2ItemsMap[filePath].find(
+        item => item.tag === tag,
+      );
+      if (found) {
+        return {
+          file: filePath,
+          lineNumber: found.lineNumber,
+          tag: found.tag,
+        };
+      }
+    }
   }
   clear() {
-    this._itemList = [];
+    this._file2ItemsMap = {};
   }
   private async _getCurrentItemList() {
     const rootPath = getRootPath();
@@ -25,6 +40,13 @@ export class JumpTargetCollection {
     return [];
   }
   async init() {
-    this._itemList = await this._getCurrentItemList();
+    const list = await this._getCurrentItemList();
+    list.forEach(item => {
+      const { file, ...others } = item;
+      if (!this._file2ItemsMap[file]) {
+        this._file2ItemsMap[file] = [];
+      }
+      this._file2ItemsMap[file].push(others);
+    });
   }
 }
