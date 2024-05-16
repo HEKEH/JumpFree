@@ -8,7 +8,9 @@ scripts/**
 webpack.config.js
 vsc-extension-quickstart.md
 **/tsconfig.*
+**/.eslintrc
 **/.eslintrc.*
+**/.eslint
 **/*.map
 **/*.ts
 **/.vscode-test.*
