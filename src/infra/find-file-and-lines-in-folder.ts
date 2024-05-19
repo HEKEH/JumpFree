@@ -3,9 +3,9 @@ import os from 'os';
 import { rgPath } from '@vscode/ripgrep';
 import { FileLineItem } from '../types';
 
-export function findFileAndLines(
+export function findFileAndLinesInFolder(
   regExp: RegExp,
-  rootPath: string,
+  rootFolderPath: string,
   excludeFiles: string[],
 ): Promise<FileLineItem[]> {
   console.log('findFileAndLines start');
@@ -17,7 +17,7 @@ export function findFileAndLines(
     '-e',
     regExp.source, // The pattern to search for
     ...excludeFiles.flatMap(f => ['--glob', `!${f}`]), // Exclude files/folders
-    rootPath, // Directory to search
+    rootFolderPath, // Directory to search
   ];
 
   return new Promise((resolve, reject) => {

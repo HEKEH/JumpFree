@@ -1,10 +1,7 @@
-import {
-  DEFAULT_TAG_KEY,
-  JUMP_TARGET_PATTERN,
-  JUMP_TARGET_PATTERN_FOR_RIPGREP,
-} from '../consts';
-import { findFileAndLines } from '../infra/find-file-and-lines';
+import { JUMP_TARGET_PATTERN_FOR_RIPGREP } from '../constants';
+import { findFileAndLinesInFolder } from '../infra/find-file-and-lines-in-folder';
 import { JumpTargetItem } from '../types';
+import { getTargetTagFromLine } from './get-target-tag-from-line';
 
 /**
  * Retrieves a list of JumpTargetItem objects from the specified root path.
@@ -19,7 +16,7 @@ export async function getJumpTargetItemList(
   excludedFilesPattern: Array<string>,
 ): Promise<JumpTargetItem[]> {
   try {
-    const fileAndLines = await findFileAndLines(
+    const fileAndLines = await findFileAndLinesInFolder(
       JUMP_TARGET_PATTERN_FOR_RIPGREP,
       rootPath,
       excludedFilesPattern,
@@ -27,7 +24,7 @@ export async function getJumpTargetItemList(
 
     return fileAndLines
       .map(({ file, lineNumber, line }) => {
-        const tag = line.match(JUMP_TARGET_PATTERN)?.groups?.[DEFAULT_TAG_KEY];
+        const tag = getTargetTagFromLine(line);
 
         if (!tag) {
           console.error(`could not find tag from ${line}`);

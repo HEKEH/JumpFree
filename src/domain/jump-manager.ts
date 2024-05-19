@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { DEFAULT_EXCLUDED_FILES_PATTERN } from '../consts';
+import { DEFAULT_EXCLUDED_FILES_PATTERN } from '../constants';
 import { openFileAndJumpToLine } from '../infra/open-file-and-jump-to-line';
 import { isPathMatchPatterns } from '../utils/is-path-match-patterns';
 import { JumpTargetCollection } from './jump-target-collection';

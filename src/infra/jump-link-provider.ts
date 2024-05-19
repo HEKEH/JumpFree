@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { DEFAULT_TAG_KEY } from '../consts';
+import { DEFAULT_TAG_KEY } from '../constants';
 
 export class JumpLinkProvider implements vscode.DocumentLinkProvider {
   private _command: string;

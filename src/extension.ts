@@ -2,7 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { JumpLinkProvider } from './infra/jump-link-provider';
-import { Commands, JUMP_TO_PATTERN } from './consts';
+import { Commands, JUMP_TO_PATTERN } from './constants';
 import { JumpManager } from './domain/jump-manager';
 import { JumpFreeWatcher } from './watcher';
 

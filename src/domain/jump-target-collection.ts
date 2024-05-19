@@ -2,6 +2,9 @@ import * as vscode from 'vscode';
 import { getRootPath } from '../infra/get-root-path';
 import { JumpTargetItem } from '../types';
 import { getJumpTargetItemList } from '../utils/get-jump-target-item-list';
+import { findLinesInFile } from '../infra/find-lines-in-file';
+import { JUMP_TARGET_PATTERN } from '../constants';
+import { getTargetTagFromLine } from '../utils/get-target-tag-from-line';
 
 type SimplifiedJumpTargetItem = Omit<JumpTargetItem, 'file'>;
 
@@ -50,9 +53,33 @@ export class JumpTargetCollection {
     });
   }
 
-  onFileChange(uri: vscode.Uri) {
+  private async _getJumpTargetItemsFromFile(uri: vscode.Uri) {
+    const lineItems = await findLinesInFile(JUMP_TARGET_PATTERN, uri);
+    return lineItems
+      .map(({ lineNumber, line }) => {
+        const tag = getTargetTagFromLine(line);
+
+        if (!tag) {
+          console.error(`could not find tag from ${line}`);
+          return;
+        }
+
+        return {
+          lineNumber,
+          tag,
+        };
+      })
+      .filter(item => item) as JumpTargetItem[];
+  }
+
+  async onFileChange(uri: vscode.Uri) {
     console.log(`File changed: ${uri.fsPath}`);
-    // delete this._file2ItemsMap[uri.fsPath];
+    const filePath = uri.fsPath;
+    delete this._file2ItemsMap[filePath];
+    const jumpTargetItemList = await this._getJumpTargetItemsFromFile(uri);
+    if (jumpTargetItemList.length) {
+      this._file2ItemsMap[filePath] = jumpTargetItemList;
+    }
   }
 
   onFileDelete(uri: vscode.Uri) {
@@ -60,7 +87,11 @@ export class JumpTargetCollection {
     delete this._file2ItemsMap[uri.fsPath];
   }
 
-  onFileCreate(uri: vscode.Uri) {
+  async onFileCreate(uri: vscode.Uri) {
     console.log(`File create: ${uri.fsPath}`);
+    const jumpTargetItemList = await this._getJumpTargetItemsFromFile(uri);
+    if (jumpTargetItemList.length) {
+      this._file2ItemsMap[uri.fsPath] = jumpTargetItemList;
+    }
   }
 }
