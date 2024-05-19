@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { debounce } from 'lodash';
 import { getRootPath } from '../infra/get-root-path';
 import { JumpTargetItem } from '../types';
 import { getJumpTargetItemList } from '../utils/get-jump-target-item-list';
@@ -10,13 +11,11 @@ type SimplifiedJumpTargetItem = Omit<JumpTargetItem, 'file'>;
 
 export class JumpTargetCollection {
   private _file2ItemsMap: {
-    [filePath: string]: SimplifiedJumpTargetItem[];
+    [filePath: string]: FileHasJumpTargetItems;
   } = {};
   findTargetByTag(tag: string): JumpTargetItem | undefined {
     for (const filePath in this._file2ItemsMap) {
-      const found = this._file2ItemsMap[filePath].find(
-        item => item.tag === tag,
-      );
+      const found = this._file2ItemsMap[filePath].findItemByTag(tag);
       if (found) {
         return {
           file: filePath,
@@ -47,12 +46,57 @@ export class JumpTargetCollection {
     list.forEach(item => {
       const { file, ...others } = item;
       if (!this._file2ItemsMap[file]) {
-        this._file2ItemsMap[file] = [];
+        this._file2ItemsMap[file] = new FileHasJumpTargetItems({
+          filePath: file,
+          items: [],
+        });
       }
       this._file2ItemsMap[file].push(others);
     });
   }
 
+  onFileChange(uri: vscode.Uri) {
+    console.log(`File changed: ${uri.fsPath}`);
+    return this._file2ItemsMap[uri.fsPath].onFileChange(uri);
+  }
+
+  onFileDelete(uri: vscode.Uri) {
+    console.log(`File delete: ${uri.fsPath}`);
+    delete this._file2ItemsMap[uri.fsPath];
+  }
+
+  onFileCreate(uri: vscode.Uri) {
+    console.log(`File create: ${uri.fsPath}`);
+    const fileObj = new FileHasJumpTargetItems({
+      filePath: uri.fsPath,
+      items: [],
+    });
+    this._file2ItemsMap[uri.fsPath] = fileObj;
+    return fileObj.onFileChange(uri);
+  }
+}
+
+/** the main purpose of this class is to debounce the file change handle */
+class FileHasJumpTargetItems {
+  private _filePath: string;
+  private _items: SimplifiedJumpTargetItem[];
+
+  constructor({
+    filePath,
+    items,
+  }: {
+    filePath: string;
+    items: SimplifiedJumpTargetItem[];
+  }) {
+    this._filePath = filePath;
+    this._items = items;
+  }
+  push(item: SimplifiedJumpTargetItem) {
+    this._items.push(item);
+  }
+  findItemByTag(tag: string) {
+    return this._items.find(item => item.tag === tag);
+  }
   private async _getJumpTargetItemsFromFile(uri: vscode.Uri) {
     const lineItems = await findLinesInFile(JUMP_TARGET_PATTERN, uri);
     return lineItems
@@ -71,27 +115,11 @@ export class JumpTargetCollection {
       })
       .filter(item => item) as JumpTargetItem[];
   }
-
-  async onFileChange(uri: vscode.Uri) {
-    console.log(`File changed: ${uri.fsPath}`);
-    const filePath = uri.fsPath;
-    delete this._file2ItemsMap[filePath];
-    const jumpTargetItemList = await this._getJumpTargetItemsFromFile(uri);
-    if (jumpTargetItemList.length) {
-      this._file2ItemsMap[filePath] = jumpTargetItemList;
+  private async _onFileChange(uri: vscode.Uri) {
+    if (uri.fsPath !== this._filePath) {
+      throw new Error("uri and filePath don't match");
     }
+    this._items = await this._getJumpTargetItemsFromFile(uri);
   }
-
-  onFileDelete(uri: vscode.Uri) {
-    console.log(`File delete: ${uri.fsPath}`);
-    delete this._file2ItemsMap[uri.fsPath];
-  }
-
-  async onFileCreate(uri: vscode.Uri) {
-    console.log(`File create: ${uri.fsPath}`);
-    const jumpTargetItemList = await this._getJumpTargetItemsFromFile(uri);
-    if (jumpTargetItemList.length) {
-      this._file2ItemsMap[uri.fsPath] = jumpTargetItemList;
-    }
-  }
+  onFileChange = debounce((uri: vscode.Uri) => this._onFileChange(uri), 500);
 }
