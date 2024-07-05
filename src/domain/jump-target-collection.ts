@@ -57,6 +57,12 @@ export class JumpTargetCollection {
 
   onFileChange(uri: vscode.Uri) {
     console.log(`File changed: ${uri.fsPath}`);
+    if (!this._file2ItemsMap[uri.fsPath]) {
+      this._file2ItemsMap[uri.fsPath] = new FileHasJumpTargetItems({
+        filePath: uri.fsPath,
+        items: [],
+      });
+    }
     return this._file2ItemsMap[uri.fsPath].onFileChange(uri);
   }
 
@@ -119,7 +125,12 @@ class FileHasJumpTargetItems {
     if (uri.fsPath !== this._filePath) {
       throw new Error("uri and filePath don't match");
     }
-    this._items = await this._getJumpTargetItemsFromFile(uri);
+    try {
+      this._items = await this._getJumpTargetItemsFromFile(uri);
+    } catch (e) {
+      console.error(e);
+      this._items = [];
+    }
   }
   onFileChange = debounce((uri: vscode.Uri) => this._onFileChange(uri), 500);
 }
