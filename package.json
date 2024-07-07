@@ -2,7 +2,7 @@
   "name": "jump-free",
   "displayName": "Jump Free",
   "description": "\"Jump Free\" is a VSCode extension that aims to link two pieces of code that have an inherent connection but cannot be directly jumped from one to the other. By simply writing \"JumpFreeTo: xxx\" and \"JumpFreeTarget: xxx\", you can swiftly navigate between implicit related sections of your codebase, enhancing your productivity and efficiency.",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "publisher": "hekaigustav",
   "engines": {
     "vscode": "^1.64.0"
