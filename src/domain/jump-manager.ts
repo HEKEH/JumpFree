@@ -1,49 +1,74 @@
 import * as vscode from 'vscode';
-import { DEFAULT_EXCLUDED_FILES_PATTERN } from '../constants';
 import { openFileAndJumpToLine } from '../infra/open-file-and-jump-to-line';
-import { isPathMatchPatterns } from '../utils/is-path-match-patterns';
 import { JumpTargetCollection } from './jump-target-collection';
 export class JumpManager {
-  private _jumpTargetCollection!: JumpTargetCollection;
-  /** todo: change according to settings */
-  private _excludedFilesPatterns: string[] = DEFAULT_EXCLUDED_FILES_PATTERN;
+  /** vscode.Uri.toString() -> JumpTargetCollection */
+  private _jumpTargetCollections: Record<string, JumpTargetCollection> = {};
   private constructor() {}
 
-  private _shouldWatchFile(filePath: string) {
-    return !isPathMatchPatterns(filePath, this._excludedFilesPatterns);
-  }
-
-  onFileChange(uri: vscode.Uri) {
-    if (this._shouldWatchFile(uri.fsPath)) {
-      this._jumpTargetCollection.onFileChange(uri);
+  private async _getCurrentJumpTargetCollection(
+    uri: vscode.Uri,
+  ): Promise<JumpTargetCollection | undefined> {
+    const path = uri.toString();
+    if (this._jumpTargetCollections[path]) {
+      return this._jumpTargetCollections[path];
+    }
+    const workspaceRootFolder = vscode.workspace.getWorkspaceFolder(uri);
+    if (workspaceRootFolder) {
+      const collection = new JumpTargetCollection();
+      await collection.init({
+        workspaceRootFolder,
+      });
+      this._jumpTargetCollections[workspaceRootFolder.uri.toString()] =
+        collection;
+      return collection;
     }
   }
 
-  onFileDelete(uri: vscode.Uri) {
-    if (this._shouldWatchFile(uri.fsPath)) {
-      this._jumpTargetCollection.onFileDelete(uri);
-    }
+  async onFileChange(uri: vscode.Uri) {
+    const jumpTargetCollection = await this._getCurrentJumpTargetCollection(
+      uri,
+    );
+    await jumpTargetCollection?.onFileChange(uri);
   }
 
-  onFileCreate(uri: vscode.Uri) {
-    if (this._shouldWatchFile(uri.fsPath)) {
-      this._jumpTargetCollection.onFileCreate(uri);
-    }
+  async onFileDelete(uri: vscode.Uri) {
+    const jumpTargetCollection = await this._getCurrentJumpTargetCollection(
+      uri,
+    );
+    await jumpTargetCollection?.onFileDelete(uri);
+  }
+
+  async onFileCreate(uri: vscode.Uri) {
+    const jumpTargetCollection = await this._getCurrentJumpTargetCollection(
+      uri,
+    );
+    await jumpTargetCollection?.onFileCreate(uri);
   }
 
   static async create() {
     const manager = new JumpManager();
-    manager._jumpTargetCollection = new JumpTargetCollection();
-    await manager._jumpTargetCollection.init({
-      excludedFilesPatterns: manager._excludedFilesPatterns,
-    });
+    const workspaceRootFolders = vscode.workspace.workspaceFolders;
+    await Promise.all(
+      workspaceRootFolders?.map(async folder => {
+        const jumpTargetCollection = new JumpTargetCollection();
+        await jumpTargetCollection.init({
+          workspaceRootFolder: folder,
+        });
+        manager._jumpTargetCollections[folder.uri.toString()] =
+          jumpTargetCollection;
+      }) || [],
+    );
     return manager;
   }
 
-  async jumpToTarget(tag: string) {
+  async jumpToTarget(tag: string, uri: string) {
     console.log(tag, 'jumpToTarget target start');
     try {
-      const found = this._jumpTargetCollection.findTargetByTag(tag);
+      const jumpTargetCollection = await this._getCurrentJumpTargetCollection(
+        vscode.Uri.parse(uri),
+      );
+      const found = await jumpTargetCollection?.findTargetByTag(tag);
       if (found) {
         const { file, lineNumber } = found;
         openFileAndJumpToLine({

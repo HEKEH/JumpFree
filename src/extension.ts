@@ -27,7 +27,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   const jumpCommand = vscode.commands.registerCommand(
     Commands.jumpTo,
-    ({ target }) => jumpManager.jumpToTarget(target),
+    ({ target, uri }) => jumpManager.jumpToTarget(target, uri),
   );
   context.subscriptions.push(linkProvider, jumpCommand);
 }

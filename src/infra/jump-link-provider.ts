@@ -1,7 +1,9 @@
 import * as vscode from 'vscode';
 import { DEFAULT_TAG_KEY } from '../constants';
 
-export class JumpLinkProvider implements vscode.DocumentLinkProvider {
+export class JumpLinkProvider
+  implements vscode.DocumentLinkProvider<vscode.DocumentLink>
+{
   private _command: string;
   private _pattern: RegExp;
   private _targetKey: string;
@@ -36,7 +38,9 @@ export class JumpLinkProvider implements vscode.DocumentLinkProvider {
           range,
           vscode.Uri.parse(
             `command:${this._command}?` +
-              encodeURIComponent(JSON.stringify({ target })),
+              encodeURIComponent(
+                JSON.stringify({ target, uri: document.uri.toString() }),
+              ),
           ),
         );
         links.push(link);
