@@ -9,6 +9,10 @@ export class JumpManager {
   private async _getCurrentJumpTargetCollection(
     uri: vscode.Uri,
   ): Promise<JumpTargetCollection | undefined> {
+    const stat = await vscode.workspace.fs.stat(uri);
+    if (stat.type !== vscode.FileType.File) {
+      return;
+    }
     const path = uri.toString();
     if (this._jumpTargetCollections[path]) {
       return this._jumpTargetCollections[path];
