@@ -50,19 +50,44 @@ export class JumpManager {
     await jumpTargetCollection?.onFileCreate(uri);
   }
 
-  static async create() {
-    const manager = new JumpManager();
-    const workspaceRootFolders = vscode.workspace.workspaceFolders;
+  async onWorkspaceFolderChange({
+    removed,
+    added,
+  }: {
+    added: readonly vscode.WorkspaceFolder[];
+    removed: readonly vscode.WorkspaceFolder[];
+  }) {
+    removed.forEach(folder => {
+      const path = folder.uri.toString();
+      delete this._jumpTargetCollections[path];
+    });
+    await this._addJumpTargetCollections(added);
+  }
+
+  private async _addJumpTargetCollections(
+    workspaceRootFolders: readonly vscode.WorkspaceFolder[],
+  ) {
+    if (!workspaceRootFolders.length) {
+      return;
+    }
     await Promise.all(
-      workspaceRootFolders?.map(async folder => {
+      workspaceRootFolders.map(async folder => {
         const jumpTargetCollection = new JumpTargetCollection();
+        this._jumpTargetCollections[folder.uri.toString()] =
+          jumpTargetCollection;
         await jumpTargetCollection.init({
           workspaceRootFolder: folder,
         });
-        manager._jumpTargetCollections[folder.uri.toString()] =
-          jumpTargetCollection;
-      }) || [],
+      }),
     );
+  }
+
+  static async create() {
+    const manager = new JumpManager();
+    const workspaceRootFolders = vscode.workspace.workspaceFolders;
+    if (workspaceRootFolders) {
+      await manager._addJumpTargetCollections(workspaceRootFolders);
+    }
     return manager;
   }
 
