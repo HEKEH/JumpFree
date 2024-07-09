@@ -23,8 +23,13 @@ export class JumpTargetCollection {
   private _isReady: boolean = false;
   private _readyCallbacks: (() => void)[] = [];
 
-  private _shouldWatchFile(filePath: string) {
-    return !isPathMatchPatterns(filePath, this._excludedFilesPatterns);
+  private async _shouldWatchFile(uri: vscode.Uri) {
+    const stat = await vscode.workspace.fs.stat(uri);
+    // ignore folders
+    if (stat.type !== vscode.FileType.File) {
+      return false;
+    }
+    return !isPathMatchPatterns(uri.fsPath, this._excludedFilesPatterns);
   }
 
   async findTargetByTag(tag: string): Promise<JumpTargetItem | undefined> {
@@ -96,7 +101,7 @@ export class JumpTargetCollection {
   async onFileChange(uri: vscode.Uri) {
     console.log(`File changed: ${uri.fsPath}`);
     await this._awaitReady();
-    if (!this._shouldWatchFile(uri.fsPath)) {
+    if (!(await this._shouldWatchFile(uri))) {
       return;
     }
     if (!this._file2ItemsMap[uri.fsPath]) {
@@ -110,7 +115,7 @@ export class JumpTargetCollection {
 
   async onFileDelete(uri: vscode.Uri) {
     await this._awaitReady();
-    if (!this._shouldWatchFile(uri.fsPath)) {
+    if (!(await this._shouldWatchFile(uri))) {
       return;
     }
     console.log(`File delete: ${uri.fsPath}`);
@@ -119,7 +124,7 @@ export class JumpTargetCollection {
 
   async onFileCreate(uri: vscode.Uri) {
     await this._awaitReady();
-    if (!this._shouldWatchFile(uri.fsPath)) {
+    if (!(await this._shouldWatchFile(uri))) {
       return;
     }
     console.log(`File create: ${uri.fsPath}`);
