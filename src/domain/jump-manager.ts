@@ -9,11 +9,11 @@ export class JumpManager {
   private async _getCurrentJumpTargetCollection(
     uri: vscode.Uri,
   ): Promise<JumpTargetCollection | undefined> {
-    const path = uri.toString();
-    if (this._jumpTargetCollections[path]) {
-      return this._jumpTargetCollections[path];
-    }
     const workspaceRootFolder = vscode.workspace.getWorkspaceFolder(uri);
+    const workspaceRootPath = workspaceRootFolder?.uri.toString();
+    if (workspaceRootPath && this._jumpTargetCollections[workspaceRootPath]) {
+      return this._jumpTargetCollections[workspaceRootPath];
+    }
     if (workspaceRootFolder) {
       const collection = new JumpTargetCollection();
       await collection.init({

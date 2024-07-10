@@ -6,21 +6,22 @@ import { getTargetTagFromLine } from './get-target-tag-from-line';
 /**
  * Retrieves a list of JumpTargetItem objects from the specified root path.
  *
- * @param rootPath - The root directory path to search for jump targets.
- * @param excludedFilesPattern - An array of patterns to exclude certain files from the search.
+ * @param rootFolderPath - The root directory path to search for jump targets.
+ * @param excludeFilesPattern - An array of patterns to exclude certain files from the search.
  *
  * @returns An array of JumpTargetItem objects, each containing the file path, line number, and tag of a jump target.
  */
-export async function getJumpTargetItemList(
-  rootPath: string,
-  excludedFilesPattern: Array<string>,
-): Promise<JumpTargetItem[]> {
+export async function getJumpTargetItemList(params: {
+  rootFolderPath: string;
+  excludeFilePatterns: Array<string>;
+  /** normally, it is the path of .gitignore  */
+  ignoreFilePath?: string;
+}): Promise<JumpTargetItem[]> {
   try {
-    const fileAndLines = await findFileAndLinesInFolder(
-      JUMP_TARGET_PATTERN_FOR_RIPGREP,
-      rootPath,
-      excludedFilesPattern,
-    );
+    const fileAndLines = await findFileAndLinesInFolder({
+      regExp: JUMP_TARGET_PATTERN_FOR_RIPGREP,
+      ...params,
+    });
 
     return fileAndLines
       .map(({ file, lineNumber, line }) => {

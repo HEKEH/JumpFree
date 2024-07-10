@@ -3,11 +3,18 @@ import os from 'os';
 import { rgPath } from '@vscode/ripgrep';
 import { FileLineItem } from '../types';
 
-export function findFileAndLinesInFolder(
-  regExp: RegExp,
-  rootFolderPath: string,
-  excludeFiles: string[],
-): Promise<FileLineItem[]> {
+export function findFileAndLinesInFolder({
+  regExp,
+  rootFolderPath,
+  excludeFilePatterns,
+  ignoreFilePath,
+}: {
+  regExp: RegExp;
+  rootFolderPath: string;
+  excludeFilePatterns?: string[];
+  /** normally, it is the path of .gitignore  */
+  ignoreFilePath?: string;
+}): Promise<FileLineItem[]> {
   console.log('findFileAndLines start');
   // Prepare ripgrep's arguments
   const args = [
@@ -16,7 +23,8 @@ export function findFileAndLinesInFolder(
     // '--hidden', // Search hidden files and directories
     '-e',
     regExp.source, // The pattern to search for
-    ...excludeFiles.flatMap(f => ['--glob', `!${f}`]), // Exclude files/folders
+    ...(ignoreFilePath ? ['--ignore-file', ignoreFilePath] : []),
+    ...(excludeFilePatterns?.flatMap(f => ['--glob', `!${f}`]) || []), // Exclude files/folders
     rootFolderPath, // Directory to search
   ];
 
