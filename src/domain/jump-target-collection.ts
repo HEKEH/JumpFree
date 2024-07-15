@@ -1,6 +1,3 @@
-import { readFileSync } from 'fs';
-import path from 'path';
-import ignore, { Ignore } from 'ignore';
 import { debounce } from 'lodash';
 import * as vscode from 'vscode';
 import {
@@ -12,46 +9,44 @@ import { JumpTargetItem } from '../types';
 import { getJumpTargetItemList } from '../utils/get-jump-target-item-list';
 import { getTargetTagFromLine } from '../utils/get-target-tag-from-line';
 import { isPathMatchPatterns } from '../utils/is-path-match-patterns';
+import { GitIgnoreManager } from './gitignore-manager';
 
 type SimplifiedJumpTargetItem = Omit<JumpTargetItem, 'file'>;
 
 export class JumpTargetCollection {
-  private _rootPath!: string;
+  private _workspaceRootFolder!: vscode.WorkspaceFolder;
   private _file2ItemsMap: {
     [filePath: string]: FileHasJumpTargetItems;
   } = {};
 
   // TODO get excluded files by workspace folder
   private _excludedFilesPatterns: string[] = DEFAULT_EXCLUDED_FILES_PATTERN;
-  private _ignoreFileExists?: boolean;
-
-  private _ig?: Ignore;
 
   private _isReady: boolean = false;
   private _readyCallbacks: (() => void)[] = [];
+  private _gitIgnoreManager = new GitIgnoreManager();
+  private get rootPath() {
+    return this._workspaceRootFolder.uri.fsPath;
+  }
 
-  private async _shouldFileBeIgnored(uri: vscode.Uri) {
+  private async _shouldIgnoreFile(uri: vscode.Uri) {
     const stat = await vscode.workspace.fs.stat(uri);
     // ignore folders
     if (stat.type !== vscode.FileType.File) {
       return true;
     }
-    if (this._ig?.ignores(path.relative(this._rootPath, uri.fsPath))) {
+    if (this._gitIgnoreManager.shouldIgnore(uri.fsPath)) {
       return true;
     }
     return isPathMatchPatterns(uri.fsPath, this._excludedFilesPatterns);
   }
 
-  private get possibleIgnoreFilePath(): string {
-    return path.join(this._rootPath, '.gitignore');
-  }
-
   async findTargetByTag(tag: string): Promise<JumpTargetItem | undefined> {
     await this._awaitReady();
     for (const filePath in this._file2ItemsMap) {
-      if (await this._shouldFileBeIgnored(vscode.Uri.parse(filePath))) {
-        continue;
-      }
+      // if (await this._shouldIgnoreFile(vscode.Uri.parse(filePath))) {
+      //   continue;
+      // }
       const found = this._file2ItemsMap[filePath].findItemByTag(tag);
       if (found) {
         return {
@@ -73,13 +68,10 @@ export class JumpTargetCollection {
     }
   }
 
-  private async _getCurrentItemList(rootPath: string) {
-    console.log(rootPath, 'rootPath');
+  private async _getCurrentItemList() {
     const itemList = await getJumpTargetItemList({
-      rootFolderPath: rootPath,
-      ignoreFilePath: this._ignoreFileExists
-        ? this.possibleIgnoreFilePath
-        : undefined,
+      rootFolderPath: this.rootPath,
+      ignoreFilePaths: this._gitIgnoreManager.ignoreFilePaths,
       excludeFilePatterns: this._excludedFilesPatterns,
     });
     console.log(itemList, 'getCurrentItemList');
@@ -91,30 +83,17 @@ export class JumpTargetCollection {
     this._readyCallbacks.forEach(cb => cb());
     this._readyCallbacks = [];
   }
-  private _handleGitIgnoreFile() {
-    const possibleGitIgnorePath = path.join(this._rootPath, '.gitignore');
-    try {
-      const fileContent = readFileSync(possibleGitIgnorePath, {
-        encoding: 'utf8',
-      });
-      this._ignoreFileExists = true;
-      const ig = ignore();
-      ig.add(fileContent.toString());
-      this._ig = ig;
-    } catch (err) {
-      this._ignoreFileExists = false;
-      this._ig = undefined;
-    }
-  }
   async init({
     workspaceRootFolder,
   }: {
     workspaceRootFolder: vscode.WorkspaceFolder;
   }) {
     // root path of workspace folder
-    this._rootPath = workspaceRootFolder.uri.fsPath;
-    this._handleGitIgnoreFile();
-    const list = await this._getCurrentItemList(this._rootPath);
+    this._workspaceRootFolder = workspaceRootFolder;
+    await this._gitIgnoreManager.init({
+      rootFolder: workspaceRootFolder,
+    });
+    const list = await this._getCurrentItemList();
     list.forEach(item => {
       const { file, ...others } = item;
       if (!this._file2ItemsMap[file]) {
@@ -131,10 +110,8 @@ export class JumpTargetCollection {
   async onFileChange(uri: vscode.Uri) {
     console.log(`File changed: ${uri.fsPath}`);
     await this._awaitReady();
-    if (uri.fsPath === this.possibleIgnoreFilePath) {
-      this._handleGitIgnoreFile();
-    }
-    if (await this._shouldFileBeIgnored(uri)) {
+    await this._gitIgnoreManager.onFileChange(uri);
+    if (await this._shouldIgnoreFile(uri)) {
       return;
     }
     if (!this._file2ItemsMap[uri.fsPath]) {
@@ -148,10 +125,8 @@ export class JumpTargetCollection {
 
   async onFileDelete(uri: vscode.Uri) {
     await this._awaitReady();
-    if (uri.fsPath === this.possibleIgnoreFilePath) {
-      this._handleGitIgnoreFile();
-    }
-    if (await this._shouldFileBeIgnored(uri)) {
+    await this._gitIgnoreManager.onFileDelete(uri);
+    if (await this._shouldIgnoreFile(uri)) {
       return;
     }
     console.log(`File delete: ${uri.fsPath}`);
@@ -159,20 +134,7 @@ export class JumpTargetCollection {
   }
 
   async onFileCreate(uri: vscode.Uri) {
-    await this._awaitReady();
-    if (uri.fsPath === this.possibleIgnoreFilePath) {
-      this._handleGitIgnoreFile();
-    }
-    if (await this._shouldFileBeIgnored(uri)) {
-      return;
-    }
-    console.log(`File create: ${uri.fsPath}`);
-    const fileObj = new FileHasJumpTargetItems({
-      filePath: uri.fsPath,
-      items: [],
-    });
-    this._file2ItemsMap[uri.fsPath] = fileObj;
-    await fileObj.onFileChange(uri);
+    await this.onFileChange(uri);
   }
 }
 

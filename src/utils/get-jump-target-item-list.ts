@@ -14,8 +14,8 @@ import { getTargetTagFromLine } from './get-target-tag-from-line';
 export async function getJumpTargetItemList(params: {
   rootFolderPath: string;
   excludeFilePatterns: Array<string>;
-  /** normally, it is the path of .gitignore  */
-  ignoreFilePath?: string;
+  /** it is the paths of .gitignore  */
+  ignoreFilePaths?: string[];
 }): Promise<JumpTargetItem[]> {
   try {
     const fileAndLines = await findFileAndLinesInFolder({

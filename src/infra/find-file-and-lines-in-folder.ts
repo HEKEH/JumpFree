@@ -7,13 +7,13 @@ export function findFileAndLinesInFolder({
   regExp,
   rootFolderPath,
   excludeFilePatterns,
-  ignoreFilePath,
+  ignoreFilePaths,
 }: {
   regExp: RegExp;
   rootFolderPath: string;
   excludeFilePatterns?: string[];
-  /** normally, it is the path of .gitignore  */
-  ignoreFilePath?: string;
+  /** the paths of .gitignore  */
+  ignoreFilePaths?: string[];
 }): Promise<FileLineItem[]> {
   console.log('findFileAndLines start');
   // Prepare ripgrep's arguments
@@ -23,7 +23,7 @@ export function findFileAndLinesInFolder({
     // '--hidden', // Search hidden files and directories
     '-e',
     regExp.source, // The pattern to search for
-    ...(ignoreFilePath ? ['--ignore-file', ignoreFilePath] : []),
+    ...(ignoreFilePaths?.flatMap(f => ['--ignore-file', f]) || []),
     ...(excludeFilePatterns?.flatMap(f => ['--glob', `!${f}`]) || []), // Exclude files/folders
     rootFolderPath, // Directory to search
   ];

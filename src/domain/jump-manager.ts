@@ -96,7 +96,7 @@ export class JumpManager {
       const found = await jumpTargetCollection?.findTargetByTag(tag);
       if (found) {
         const { file, lineNumber } = found;
-        openFileAndJumpToLine({
+        await openFileAndJumpToLine({
           file,
           lineNumber,
         });
