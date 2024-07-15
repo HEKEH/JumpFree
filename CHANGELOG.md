@@ -2,6 +2,10 @@
 
 All notable changes to the "jump-free" extension will be documented in this file.
 
+## [0.4.0] - 2024-07-15
+
+- Handle .gitignore in vscode workspace
+
 ## [0.3.0] - 2024-07-07
 
 - Handle multiple workspace folders
