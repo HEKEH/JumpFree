@@ -1,0 +1,3 @@
+{
+  "extension.description": "\"Jump Free\" is a VSCode extension that aims to link two pieces of code that have an inherent connection but cannot be directly jumped from one to the other. By simply writing \"JumpFreeTo: xxx\" and \"JumpFreeTarget: xxx\", you can swiftly navigate between implicit related sections of your codebase, enhancing your productivity and efficiency."
+}

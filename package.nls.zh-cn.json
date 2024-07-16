@@ -1,0 +1,3 @@
+{
+  "extension.description": "\"Jump Free\" 是一个 VSCode 插件，旨在链接两个具有内在联系但无法直接跳转的代码片段。只需编写 \"JumpFreeTo: xxx\" 和 \"JumpFreeTarget: xxx\"，即可在隐式相关的代码部分之间快速导航，提高您的生产力和效率。"
+}
