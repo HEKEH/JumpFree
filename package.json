@@ -2,8 +2,9 @@
   "name": "jump-free",
   "displayName": "Jump Free",
   "description": "%extension.description%",
-  "version": "0.5.0",
+  "version": "0.6.1",
   "publisher": "hekaigustav",
+  "icon": "img/logo.png",
   "engines": {
     "vscode": "^1.64.0"
   },

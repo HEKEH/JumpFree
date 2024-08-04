@@ -2,6 +2,10 @@
 
 All notable changes to the "jump-free" extension will be documented in this file.
 
+## [0.6.0] - 2024-08-04
+
+- Add Logo
+
 ## [0.5.0] - 2024-07-16
 
 - Add Chinese introduction
