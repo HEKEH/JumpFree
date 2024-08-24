@@ -1,3 +1,5 @@
 {
-    "Jump target not found": "未找到跳转目标"
+    "Jump target not found": "未找到跳转目标",
+    "Choose a jump target": "选择一个跳转目标",
+    "Line {0}": "{0}行"
 }

@@ -1,5 +1,7 @@
+import path from 'path';
 import * as vscode from 'vscode';
 import { openFileAndJumpToLine } from '../infra/open-file-and-jump-to-line';
+import { showCustomMenu } from '../infra/menus';
 import { JumpTargetCollection } from './jump-target-collection';
 export class JumpManager {
   /** vscode.Uri.toString() -> JumpTargetCollection */
@@ -94,20 +96,48 @@ export class JumpManager {
         vscode.Uri.parse(uri),
       );
       if (!jumpTargetCollection) {
-        return;
-      }
-      const found = await jumpTargetCollection.findTargetsByTag(tag);
-      if (!found.length) {
-        await vscode.window.showWarningMessage(
+        vscode.window.showWarningMessage(
           vscode.l10n.t('Jump target not found'),
         );
         return;
       }
-      const { file, lineNumber } = found[0];
-      await openFileAndJumpToLine({
-        file,
-        lineNumber,
-      });
+      const found = await jumpTargetCollection.findTargetsByTag(tag);
+      if (!found.length) {
+        vscode.window.showWarningMessage(
+          vscode.l10n.t('Jump target not found'),
+        );
+        return;
+      }
+      // if only one target, jump directly
+      if (found.length === 1) {
+        const { file, lineNumber } = found[0];
+        await openFileAndJumpToLine({
+          file,
+          lineNumber,
+        });
+        return;
+      }
+      const rootDir = jumpTargetCollection.workspaceRootFolder.uri.fsPath;
+      const hasMultipleWorkspaceFolders =
+        (vscode.workspace.workspaceFolders || []).length > 1;
+      await showCustomMenu(
+        found.map(item => {
+          const relativePath = path.relative(rootDir, item.file);
+          return {
+            label: hasMultipleWorkspaceFolders
+              ? `${jumpTargetCollection.workspaceRootFolder.name} · ${relativePath}`
+              : relativePath,
+            description: vscode.l10n.t('Line {0}', item.lineNumber),
+            action: async () => {
+              await openFileAndJumpToLine({
+                file: item.file,
+                lineNumber: item.lineNumber,
+              });
+            },
+          };
+        }),
+        vscode.l10n.t('Choose a jump target'),
+      );
     } catch (e) {
       console.error(e);
     }

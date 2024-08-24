@@ -14,7 +14,7 @@ import { GitIgnoreManager } from './gitignore-manager';
 type SimplifiedJumpTargetItem = Omit<JumpTargetItem, 'file'>;
 
 export class JumpTargetCollection {
-  private _workspaceRootFolder!: vscode.WorkspaceFolder;
+  readonly workspaceRootFolder!: vscode.WorkspaceFolder;
   private _file2ItemsMap: {
     [filePath: string]: FileHasJumpTargetItems;
   } = {};
@@ -26,7 +26,7 @@ export class JumpTargetCollection {
   private _readyCallbacks: (() => void)[] = [];
   private _gitIgnoreManager = new GitIgnoreManager();
   private get rootPath() {
-    return this._workspaceRootFolder.uri.fsPath;
+    return this.workspaceRootFolder.uri.fsPath;
   }
 
   private async _shouldIgnoreFile(uri: vscode.Uri) {
@@ -93,7 +93,8 @@ export class JumpTargetCollection {
     workspaceRootFolder: vscode.WorkspaceFolder;
   }) {
     // root path of workspace folder
-    this._workspaceRootFolder = workspaceRootFolder;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (this.workspaceRootFolder as any) = workspaceRootFolder;
     await this._gitIgnoreManager.init({
       rootFolder: workspaceRootFolder,
     });
