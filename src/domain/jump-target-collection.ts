@@ -41,21 +41,25 @@ export class JumpTargetCollection {
     return isPathMatchPatterns(uri.fsPath, this._excludedFilesPatterns);
   }
 
-  async findTargetByTag(tag: string): Promise<JumpTargetItem | undefined> {
+  async findTargetsByTag(tag: string): Promise<JumpTargetItem[]> {
     await this._awaitReady();
+    const result: JumpTargetItem[] = [];
     for (const filePath in this._file2ItemsMap) {
       // if (await this._shouldIgnoreFile(vscode.Uri.parse(filePath))) {
       //   continue;
       // }
-      const found = this._file2ItemsMap[filePath].findItemByTag(tag);
-      if (found) {
-        return {
-          file: filePath,
-          lineNumber: found.lineNumber,
-          tag: found.tag,
-        };
+      const found = this._file2ItemsMap[filePath].findItemsByTag(tag);
+      if (found.length) {
+        result.push(
+          ...found.map(item => ({
+            file: filePath,
+            lineNumber: item.lineNumber,
+            tag,
+          })),
+        );
       }
     }
+    return result;
   }
   clear() {
     this._file2ItemsMap = {};
@@ -156,8 +160,8 @@ class FileHasJumpTargetItems {
   push(item: SimplifiedJumpTargetItem) {
     this._items.push(item);
   }
-  findItemByTag(tag: string) {
-    return this._items.find(item => item.tag === tag);
+  findItemsByTag(tag: string) {
+    return this._items.filter(item => item.tag === tag);
   }
   private async _getJumpTargetItemsFromFile(uri: vscode.Uri) {
     const lineItems = await findLinesInFile(JUMP_TARGET_PATTERN, uri);

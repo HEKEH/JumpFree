@@ -93,16 +93,21 @@ export class JumpManager {
       const jumpTargetCollection = await this._getCurrentJumpTargetCollection(
         vscode.Uri.parse(uri),
       );
-      const found = await jumpTargetCollection?.findTargetByTag(tag);
-      if (found) {
-        const { file, lineNumber } = found;
-        await openFileAndJumpToLine({
-          file,
-          lineNumber,
-        });
-      } else {
-        // TODO message
+      if (!jumpTargetCollection) {
+        return;
       }
+      const found = await jumpTargetCollection.findTargetsByTag(tag);
+      if (!found.length) {
+        await vscode.window.showWarningMessage(
+          vscode.l10n.t('Jump target not found'),
+        );
+        return;
+      }
+      const { file, lineNumber } = found[0];
+      await openFileAndJumpToLine({
+        file,
+        lineNumber,
+      });
     } catch (e) {
       console.error(e);
     }
