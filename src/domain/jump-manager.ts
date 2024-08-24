@@ -1,7 +1,7 @@
 import path from 'path';
 import * as vscode from 'vscode';
 import { openFileAndJumpToLine } from '../infra/open-file-and-jump-to-line';
-import { showCustomMenu } from '../infra/menus';
+import { showCustomMenu } from '../infra/menu';
 import { JumpTargetCollection } from './jump-target-collection';
 export class JumpManager {
   /** vscode.Uri.toString() -> JumpTargetCollection */
