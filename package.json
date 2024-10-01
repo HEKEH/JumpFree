@@ -2,7 +2,7 @@
   "name": "jump-free",
   "displayName": "Jump Free",
   "description": "%extension.description%",
-  "version": "0.7.0",
+  "version": "0.7.2",
   "publisher": "hekaigustav",
   "icon": "img/logo.png",
   "engines": {

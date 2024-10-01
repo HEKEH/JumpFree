@@ -2,6 +2,10 @@
 
 All notable changes to the "jump-free" extension will be documented in this file.
 
+## [0.7.2] - 2024-10-01
+
+- Change Logo
+
 ## [0.7.0] - 2024-08-24
 
 - Multiple jump targets
