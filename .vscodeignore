@@ -17,3 +17,6 @@ vsc-extension-quickstart.md
 **/.eslintignore
 **/commitlint.config.*
 **/.husky
+**/cspell.*
+node_modules/**
+!node_modules/@vscode/ripgrep/**
