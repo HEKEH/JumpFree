@@ -73,11 +73,15 @@ export class JumpTargetCollection {
   }
 
   private async _getCurrentItemList() {
-    const itemList = await getJumpTargetItemList({
+    const { rootIgnoreFilePath } = this._gitIgnoreManager;
+    let itemList = await getJumpTargetItemList({
       rootFolderPath: this.rootPath,
-      ignoreFilePaths: this._gitIgnoreManager.ignoreFilePaths,
+      ignoreFilePaths: rootIgnoreFilePath ? [rootIgnoreFilePath] : undefined,
       excludeFilePatterns: this._excludedFilesPatterns,
     });
+    itemList = itemList.filter(
+      item => !this._gitIgnoreManager.shouldIgnore(item.file),
+    );
     console.log(itemList, 'getCurrentItemList');
     return itemList;
   }

@@ -1,14 +1,25 @@
 import path from 'path';
 import ignore, { Ignore } from 'ignore';
 import * as vscode from 'vscode';
+import { isFileExist } from '../utils/is-file-exist';
 
 export class GitIgnoreManager {
   private _ignoreItems: GitIgnoreItem[] = [];
+  private _rootPath: string = '';
+
   get ignoreFilePaths() {
     return this._ignoreItems.map(item => item.ignoreFilePath);
   }
+  get rootIgnoreFilePath() {
+    const possibleGitIgnorePath = path.join(this._rootPath, '.gitignore');
+    if (isFileExist(possibleGitIgnorePath)) {
+      return possibleGitIgnorePath;
+    }
+    return undefined;
+  }
   async init({ rootFolder }: { rootFolder: vscode.WorkspaceFolder }) {
-    // 使用 vscode.workspace.findFiles 方法查找所有 .gitignore 文件
+    this._rootPath = rootFolder.uri.fsPath;
+    // use vscode.workspace.findFiles to find all .gitignore files
     const ignoreFileUris = await vscode.workspace.findFiles(
       new vscode.RelativePattern(rootFolder, '**/.gitignore'),
     );
