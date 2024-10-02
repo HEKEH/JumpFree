@@ -2,6 +2,10 @@
 
 All notable changes to the "jump-free" extension will be documented in this file.
 
+## [1.0.0] - 2024-10-02
+
+- First stable version
+
 ## [0.7.2] - 2024-10-01
 
 - Change Logo
