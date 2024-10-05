@@ -1,21 +1,15 @@
 import * as vscode from 'vscode';
 
-export function showCustomMenu(
-  options: {
-    label: string;
-    description?: string;
-    action: () => unknown;
-  }[],
+export interface MenuOption {
+  label: string;
+  description?: string;
+  action: () => unknown;
+}
+
+export async function showCustomMenu(
+  options: MenuOption[],
   placeHolder: string,
-) {
-  return vscode.window
-    .showQuickPick(options, {
-      placeHolder,
-    })
-    .then(selection => {
-      if (selection) {
-        // 触发选中项的对应操作
-        return selection.action();
-      }
-    });
+): Promise<unknown | undefined> {
+  const selection = await vscode.window.showQuickPick(options, { placeHolder });
+  return selection?.action();
 }
