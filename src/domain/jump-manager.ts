@@ -90,6 +90,7 @@ export class JumpManager {
   }
 
   async jumpToTarget(tag: string, uri: string) {
+    console.log(tag, 'jumpToTarget target start');
     try {
       const jumpTargetCollection = await this._getCurrentJumpTargetCollection(
         vscode.Uri.parse(uri),

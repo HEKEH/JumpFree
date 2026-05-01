@@ -8,31 +8,44 @@ import { JumpFreeWatcher } from './watcher';
 
 let jumpFreeWatcher: JumpFreeWatcher | undefined;
 let jumpManager: JumpManager | undefined;
-let isInitializing: boolean = false;
 let initPromise: Promise<void> | undefined;
 
-async function ensureJumpManagerInitialized(): Promise<void> {
-  if (jumpManager) {
-    return;
-  }
-  if (isInitializing && initPromise) {
-    await initPromise;
+/**
+ * Start background initialization of the extension
+ * This runs asynchronously without blocking the activation
+ */
+function startBackgroundInitialization(): void {
+  if (initPromise) {
     return;
   }
 
-  isInitializing = true;
+  console.log('Starting JumpFree background initialization...');
   initPromise = (async () => {
-    jumpManager = await JumpManager.create();
-    jumpFreeWatcher = new JumpFreeWatcher({ jumpManager });
+    try {
+      jumpManager = await JumpManager.create();
+      jumpFreeWatcher = new JumpFreeWatcher({ jumpManager });
+      console.log('JumpFree background initialization completed');
+    } catch (error) {
+      console.error('JumpFree initialization failed:', error);
+    }
   })();
+}
 
-  await initPromise;
-  isInitializing = false;
+/**
+ * Wait for initialization to complete
+ * Used when user tries to jump before initialization is done
+ */
+async function ensureInitialized(): Promise<void> {
+  if (initPromise) {
+    await initPromise;
+  }
 }
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+  console.log('Extension "jump-free" is now active!');
+
   // Register document link provider immediately
   const linkProvider = vscode.languages.registerDocumentLinkProvider(
     { scheme: 'file' },
@@ -42,20 +55,26 @@ export function activate(context: vscode.ExtensionContext) {
     }),
   );
 
-  // Register jump command with lazy initialization
+  // Register jump command
   const jumpCommand = vscode.commands.registerCommand(
     Commands.jumpTo,
     async ({ target, uri }) => {
-      await ensureJumpManagerInitialized();
+      // Ensure initialization is complete before jumping
+      await ensureInitialized();
       if (jumpManager) {
         await jumpManager.jumpToTarget(target, uri);
       }
     },
   );
+
   context.subscriptions.push(linkProvider, jumpCommand);
+
+  // Start background initialization immediately (non-blocking)
+  startBackgroundInitialization();
 }
 
 // This method is called when your extension is deactivated
 export function deactivate() {
+  console.log('Extension "jump-free" is now deactivated!');
   jumpFreeWatcher?.dispose();
 }

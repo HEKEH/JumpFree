@@ -12,6 +12,7 @@ export function findFileAndLinesInFolder({
   rootFolderPath: string;
   excludeFilePatterns?: string[];
 }): Promise<FileLineItem[]> {
+  console.log('findFileAndLines start');
   // Prepare ripgrep's arguments
   const args = [
     '-n', // Output line numbers
@@ -31,11 +32,13 @@ export function findFileAndLinesInFolder({
     });
 
     rg.on('close', () => {
+      console.log(data, 'rg close');
       if (!data) {
         resolve([]);
         return;
       }
       const findItems = data.trim().split('\n');
+      console.log(findItems, 'findItems');
       let matches: FileLineItem[];
       if (os.platform() === 'win32') {
         // windows
