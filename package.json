@@ -28,7 +28,8 @@
     "ripgrep"
   ],
   "activationEvents": [
-    "onStartupFinished"
+    "onStartupFinished",
+    "onCommand:jump-free.jumpTo"
   ],
   "main": "./dist/extension.js",
   "l10n": "./l10n",

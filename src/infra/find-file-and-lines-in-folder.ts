@@ -7,23 +7,16 @@ export function findFileAndLinesInFolder({
   regExp,
   rootFolderPath,
   excludeFilePatterns,
-  ignoreFilePaths,
 }: {
   regExp: RegExp;
   rootFolderPath: string;
   excludeFilePatterns?: string[];
-  /** the paths of .gitignore  */
-  ignoreFilePaths?: string[];
 }): Promise<FileLineItem[]> {
-  console.log('findFileAndLines start');
   // Prepare ripgrep's arguments
   const args = [
     '-n', // Output line numbers
-    '-uu', // Ignore .gitignore and .ignore
-    // '--hidden', // Search hidden files and directories
     '-e',
     regExp.source, // The pattern to search for
-    ...(ignoreFilePaths?.flatMap(f => ['--ignore-file', f]) || []),
     ...(excludeFilePatterns?.flatMap(f => ['--glob', `!${f}`]) || []), // Exclude files/folders
     rootFolderPath, // Directory to search
   ];
@@ -38,13 +31,11 @@ export function findFileAndLinesInFolder({
     });
 
     rg.on('close', () => {
-      console.log(data, 'rg close');
       if (!data) {
         resolve([]);
         return;
       }
       const findItems = data.trim().split('\n');
-      console.log(findItems, 'findItems');
       let matches: FileLineItem[];
       if (os.platform() === 'win32') {
         // windows

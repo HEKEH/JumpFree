@@ -9,7 +9,6 @@ import { JumpTargetItem } from '../types';
 import { getJumpTargetItemList } from '../utils/get-jump-target-item-list';
 import { getTargetTagFromLine } from '../utils/get-target-tag-from-line';
 import { isPathMatchPatterns } from '../utils/is-path-match-patterns';
-import { GitIgnoreManager } from './gitignore-manager';
 
 type SimplifiedJumpTargetItem = Omit<JumpTargetItem, 'file'>;
 
@@ -24,7 +23,6 @@ export class JumpTargetCollection {
 
   private _isReady: boolean = false;
   private _readyCallbacks: (() => void)[] = [];
-  private _gitIgnoreManager = new GitIgnoreManager();
   private get rootPath() {
     return this.workspaceRootFolder.uri.fsPath;
   }
@@ -33,9 +31,6 @@ export class JumpTargetCollection {
     const stat = await vscode.workspace.fs.stat(uri);
     // ignore folders
     if (stat.type !== vscode.FileType.File) {
-      return true;
-    }
-    if (this._gitIgnoreManager.shouldIgnore(uri.fsPath)) {
       return true;
     }
     return isPathMatchPatterns(uri.fsPath, this._excludedFilesPatterns);
@@ -73,17 +68,10 @@ export class JumpTargetCollection {
   }
 
   private async _getCurrentItemList() {
-    const { rootIgnoreFilePath } = this._gitIgnoreManager;
-    let itemList = await getJumpTargetItemList({
+    return getJumpTargetItemList({
       rootFolderPath: this.rootPath,
-      ignoreFilePaths: rootIgnoreFilePath ? [rootIgnoreFilePath] : undefined,
       excludeFilePatterns: this._excludedFilesPatterns,
     });
-    itemList = itemList.filter(
-      item => !this._gitIgnoreManager.shouldIgnore(item.file),
-    );
-    console.log(itemList, 'getCurrentItemList');
-    return itemList;
   }
 
   private _initReady() {
@@ -99,9 +87,6 @@ export class JumpTargetCollection {
     // root path of workspace folder
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (this.workspaceRootFolder as any) = workspaceRootFolder;
-    await this._gitIgnoreManager.init({
-      rootFolder: workspaceRootFolder,
-    });
     const list = await this._getCurrentItemList();
     list.forEach(item => {
       const { file, ...others } = item;
@@ -117,9 +102,7 @@ export class JumpTargetCollection {
   }
 
   async onFileChange(uri: vscode.Uri) {
-    console.log(`File changed: ${uri.fsPath}`);
     await this._awaitReady();
-    await this._gitIgnoreManager.onFileChange(uri);
     if (await this._shouldIgnoreFile(uri)) {
       return;
     }
@@ -134,11 +117,9 @@ export class JumpTargetCollection {
 
   async onFileDelete(uri: vscode.Uri) {
     await this._awaitReady();
-    await this._gitIgnoreManager.onFileDelete(uri);
     if (await this._shouldIgnoreFile(uri)) {
       return;
     }
-    console.log(`File delete: ${uri.fsPath}`);
     delete this._file2ItemsMap[uri.fsPath];
   }
 

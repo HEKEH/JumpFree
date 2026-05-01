@@ -7,16 +7,33 @@ import { JumpManager } from './domain/jump-manager';
 import { JumpFreeWatcher } from './watcher';
 
 let jumpFreeWatcher: JumpFreeWatcher | undefined;
+let jumpManager: JumpManager | undefined;
+let isInitializing: boolean = false;
+let initPromise: Promise<void> | undefined;
+
+async function ensureJumpManagerInitialized(): Promise<void> {
+  if (jumpManager) {
+    return;
+  }
+  if (isInitializing && initPromise) {
+    await initPromise;
+    return;
+  }
+
+  isInitializing = true;
+  initPromise = (async () => {
+    jumpManager = await JumpManager.create();
+    jumpFreeWatcher = new JumpFreeWatcher({ jumpManager });
+  })();
+
+  await initPromise;
+  isInitializing = false;
+}
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
-export async function activate(context: vscode.ExtensionContext) {
-  // Use the console to output diagnostic information (console.log) and errors (console.error)
-  // This line of code will only be executed once when your extension is activated
-  console.log('Extension "jump-free" is now active!');
-  const jumpManager = await JumpManager.create();
-  jumpFreeWatcher = new JumpFreeWatcher({ jumpManager });
-
+export function activate(context: vscode.ExtensionContext) {
+  // Register document link provider immediately
   const linkProvider = vscode.languages.registerDocumentLinkProvider(
     { scheme: 'file' },
     new JumpLinkProvider({
@@ -25,15 +42,20 @@ export async function activate(context: vscode.ExtensionContext) {
     }),
   );
 
+  // Register jump command with lazy initialization
   const jumpCommand = vscode.commands.registerCommand(
     Commands.jumpTo,
-    ({ target, uri }) => jumpManager.jumpToTarget(target, uri),
+    async ({ target, uri }) => {
+      await ensureJumpManagerInitialized();
+      if (jumpManager) {
+        await jumpManager.jumpToTarget(target, uri);
+      }
+    },
   );
   context.subscriptions.push(linkProvider, jumpCommand);
 }
 
 // This method is called when your extension is deactivated
 export function deactivate() {
-  console.log('Extension "jump-free" is now deactivated!');
   jumpFreeWatcher?.dispose();
 }
