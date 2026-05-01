@@ -2,6 +2,10 @@
 
 All notable changes to the "jump-free" extension will be documented in this file.
 
+## [1.1.1] - 2026-05-01
+
+- Performance optimize
+
 ## [1.0.0] - 2024-10-02
 
 - First stable version
