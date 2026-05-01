@@ -2,6 +2,7 @@ import { spawn } from 'child_process';
 import os from 'os';
 import { rgPath } from '@vscode/ripgrep';
 import { FileLineItem } from '../types';
+import { debugLog } from '../utils/logger';
 
 export function findFileAndLinesInFolder({
   regExp,
@@ -12,24 +13,20 @@ export function findFileAndLinesInFolder({
   regExp: RegExp;
   rootFolderPath: string;
   excludeFilePatterns?: string[];
-  /** the paths of .gitignore  */
   ignoreFilePaths?: string[];
 }): Promise<FileLineItem[]> {
-  console.log('findFileAndLines start');
-  // Prepare ripgrep's arguments
+  debugLog('findFileAndLines start');
   const args = [
-    '-n', // Output line numbers
-    '-uu', // Ignore .gitignore and .ignore
-    // '--hidden', // Search hidden files and directories
+    '-n',
+    '-uu',
     '-e',
-    regExp.source, // The pattern to search for
+    regExp.source,
     ...(ignoreFilePaths?.flatMap(f => ['--ignore-file', f]) || []),
-    ...(excludeFilePatterns?.flatMap(f => ['--glob', `!${f}`]) || []), // Exclude files/folders
-    rootFolderPath, // Directory to search
+    ...(excludeFilePatterns?.flatMap(f => ['--glob', `!${f}`]) || []),
+    rootFolderPath,
   ];
 
   return new Promise((resolve, reject) => {
-    // Spawn the ripgrep process
     const rg = spawn(rgPath, args);
     let data = '';
 
@@ -38,16 +35,15 @@ export function findFileAndLinesInFolder({
     });
 
     rg.on('close', () => {
-      console.log(data, 'rg close');
+      debugLog(data, 'rg close');
       if (!data) {
         resolve([]);
         return;
       }
       const findItems = data.trim().split('\n');
-      console.log(findItems, 'findItems');
+      debugLog(findItems, 'findItems');
       let matches: FileLineItem[];
       if (os.platform() === 'win32') {
-        // windows
         matches = findItems.map(item => {
           const parts = item.split(':', 3);
           const file = parts[0] + ':' + parts[1];

@@ -2,10 +2,13 @@ import path from 'path';
 import * as vscode from 'vscode';
 import { openFileAndJumpToLine } from '../infra/open-file-and-jump-to-line';
 import { showCustomMenu } from '../infra/menu';
+import { debugLog } from '../utils/logger';
 import { JumpTargetCollection } from './jump-target-collection';
+
 export class JumpManager {
-  /** vscode.Uri.toString() -> JumpTargetCollection */
-  private _jumpTargetCollections: Record<string, JumpTargetCollection> = {};
+  private _jumpTargetCollections: Map<string, JumpTargetCollection> = new Map();
+  private _initializationPromises: Map<string, Promise<JumpTargetCollection>> =
+    new Map();
   private constructor() {}
 
   private async _getCurrentJumpTargetCollection(
@@ -13,84 +16,119 @@ export class JumpManager {
   ): Promise<JumpTargetCollection | undefined> {
     const workspaceRootFolder = vscode.workspace.getWorkspaceFolder(uri);
     const workspaceRootPath = workspaceRootFolder?.uri.toString();
-    if (workspaceRootPath && this._jumpTargetCollections[workspaceRootPath]) {
-      return this._jumpTargetCollections[workspaceRootPath];
+
+    if (!workspaceRootPath) {
+      return undefined;
     }
+
+    const existingCollection =
+      this._jumpTargetCollections.get(workspaceRootPath);
+    if (existingCollection) {
+      return existingCollection;
+    }
+
+    const existingPromise = this._initializationPromises.get(workspaceRootPath);
+    if (existingPromise) {
+      return existingPromise;
+    }
+
     if (workspaceRootFolder) {
-      const collection = new JumpTargetCollection();
-      await collection.init({
-        workspaceRootFolder,
-      });
-      this._jumpTargetCollections[workspaceRootFolder.uri.toString()] =
-        collection;
-      return collection;
+      const initPromise = this._initWorkspaceFolder(workspaceRootFolder);
+      this._initializationPromises.set(workspaceRootPath, initPromise);
+      try {
+        const collection = await initPromise;
+        return collection;
+      } finally {
+        this._initializationPromises.delete(workspaceRootPath);
+      }
     }
+
+    return undefined;
+  }
+
+  private async _initWorkspaceFolder(
+    workspaceRootFolder: vscode.WorkspaceFolder,
+  ): Promise<JumpTargetCollection> {
+    const collection = new JumpTargetCollection();
+    await collection.init({
+      workspaceRootFolder,
+    });
+    this._jumpTargetCollections.set(
+      workspaceRootFolder.uri.toString(),
+      collection,
+    );
+    debugLog(`Workspace folder initialized: ${workspaceRootFolder.uri.fsPath}`);
+    return collection;
   }
 
   async onFileChange(uri: vscode.Uri) {
-    const jumpTargetCollection = await this._getCurrentJumpTargetCollection(
-      uri,
+    const jumpTargetCollection = this._jumpTargetCollections.get(
+      vscode.workspace.getWorkspaceFolder(uri)?.uri.toString() || '',
     );
-    await jumpTargetCollection?.onFileChange(uri);
+    if (!jumpTargetCollection) {
+      return;
+    }
+    await jumpTargetCollection.onFileChange(uri);
   }
 
   async onFileDelete(uri: vscode.Uri) {
-    const jumpTargetCollection = await this._getCurrentJumpTargetCollection(
-      uri,
+    const jumpTargetCollection = this._jumpTargetCollections.get(
+      vscode.workspace.getWorkspaceFolder(uri)?.uri.toString() || '',
     );
-    await jumpTargetCollection?.onFileDelete(uri);
+    if (!jumpTargetCollection) {
+      return;
+    }
+    await jumpTargetCollection.onFileDelete(uri);
   }
 
   async onFileCreate(uri: vscode.Uri) {
-    const jumpTargetCollection = await this._getCurrentJumpTargetCollection(
-      uri,
+    const jumpTargetCollection = this._jumpTargetCollections.get(
+      vscode.workspace.getWorkspaceFolder(uri)?.uri.toString() || '',
     );
-    await jumpTargetCollection?.onFileCreate(uri);
+    if (!jumpTargetCollection) {
+      return;
+    }
+    await jumpTargetCollection.onFileCreate(uri);
   }
 
   async onWorkspaceFolderChange({
     removed,
-    added,
   }: {
     added: readonly vscode.WorkspaceFolder[];
     removed: readonly vscode.WorkspaceFolder[];
   }) {
     removed.forEach(folder => {
       const path = folder.uri.toString();
-      delete this._jumpTargetCollections[path];
+      const collection = this._jumpTargetCollections.get(path);
+      collection?.dispose();
+      this._jumpTargetCollections.delete(path);
+      this._initializationPromises.delete(path);
     });
-    await this._addJumpTargetCollections(added);
   }
 
-  private async _addJumpTargetCollections(
-    workspaceRootFolders: readonly vscode.WorkspaceFolder[],
-  ) {
-    if (!workspaceRootFolders.length) {
+  async ensureInitialized(): Promise<void> {
+    const workspaceRootFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceRootFolders) {
       return;
     }
-    await Promise.all(
-      workspaceRootFolders.map(async folder => {
-        const jumpTargetCollection = new JumpTargetCollection();
-        this._jumpTargetCollections[folder.uri.toString()] =
-          jumpTargetCollection;
-        await jumpTargetCollection.init({
-          workspaceRootFolder: folder,
-        });
-      }),
-    );
+
+    for (const folder of workspaceRootFolders) {
+      const folderPath = folder.uri.toString();
+      if (
+        !this._jumpTargetCollections.has(folderPath) &&
+        !this._initializationPromises.has(folderPath)
+      ) {
+        await this._initWorkspaceFolder(folder);
+      }
+    }
   }
 
-  static async create() {
-    const manager = new JumpManager();
-    const workspaceRootFolders = vscode.workspace.workspaceFolders;
-    if (workspaceRootFolders) {
-      await manager._addJumpTargetCollections(workspaceRootFolders);
-    }
-    return manager;
+  static create(): JumpManager {
+    return new JumpManager();
   }
 
   async jumpToTarget(tag: string, uri: string) {
-    console.log(tag, 'jumpToTarget target start');
+    debugLog(tag, 'jumpToTarget target start');
     try {
       const jumpTargetCollection = await this._getCurrentJumpTargetCollection(
         vscode.Uri.parse(uri),
@@ -108,7 +146,6 @@ export class JumpManager {
         );
         return;
       }
-      // if only one target, jump directly
       if (found.length === 1) {
         const { file, lineNumber } = found[0];
         await openFileAndJumpToLine({
@@ -139,7 +176,15 @@ export class JumpManager {
         vscode.l10n.t('Choose a jump target'),
       );
     } catch (e) {
-      console.error(e);
+      debugLog(e);
     }
+  }
+
+  dispose() {
+    for (const collection of this._jumpTargetCollections.values()) {
+      collection.dispose();
+    }
+    this._jumpTargetCollections.clear();
+    this._initializationPromises.clear();
   }
 }

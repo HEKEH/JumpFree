@@ -1,21 +1,50 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { JumpLinkProvider } from './infra/jump-link-provider';
 import { Commands, JUMP_TO_PATTERN } from './constants';
 import { JumpManager } from './domain/jump-manager';
 import { JumpFreeWatcher } from './watcher';
+import { registerLoggingConfigListener, debugLog } from './utils/logger';
 
+let jumpManager: JumpManager | undefined;
 let jumpFreeWatcher: JumpFreeWatcher | undefined;
+let isInitialized = false;
+let initializationPromise: Promise<void> | undefined;
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
+async function ensureInitialized(): Promise<void> {
+  if (isInitialized) {
+    return;
+  }
+
+  if (initializationPromise) {
+    await initializationPromise;
+    return;
+  }
+
+  initializationPromise = (async () => {
+    debugLog('Starting lazy initialization...');
+
+    if (!jumpManager) {
+      jumpManager = JumpManager.create();
+    }
+
+    await jumpManager.ensureInitialized();
+
+    if (!jumpFreeWatcher && jumpManager) {
+      jumpFreeWatcher = new JumpFreeWatcher({ jumpManager });
+    }
+
+    isInitialized = true;
+    debugLog('Lazy initialization completed');
+  })();
+
+  await initializationPromise;
+}
+
 export async function activate(context: vscode.ExtensionContext) {
-  // Use the console to output diagnostic information (console.log) and errors (console.error)
-  // This line of code will only be executed once when your extension is activated
-  console.log('Extension "jump-free" is now active!');
-  const jumpManager = await JumpManager.create();
-  jumpFreeWatcher = new JumpFreeWatcher({ jumpManager });
+  debugLog('Extension "jump-free" is now active!');
+
+  const loggingDisposable = registerLoggingConfigListener();
+  context.subscriptions.push(loggingDisposable);
 
   const linkProvider = vscode.languages.registerDocumentLinkProvider(
     { scheme: 'file' },
@@ -27,13 +56,42 @@ export async function activate(context: vscode.ExtensionContext) {
 
   const jumpCommand = vscode.commands.registerCommand(
     Commands.jumpTo,
-    ({ target, uri }) => jumpManager.jumpToTarget(target, uri),
+    async ({ target, uri }) => {
+      await ensureInitialized();
+      if (jumpManager) {
+        await jumpManager.jumpToTarget(target, uri);
+      }
+    },
   );
+
+  let openDocumentListener: vscode.Disposable | undefined;
+  openDocumentListener = vscode.workspace.onDidOpenTextDocument(async () => {
+    if (!isInitialized && !initializationPromise) {
+      await ensureInitialized();
+    }
+    if (openDocumentListener) {
+      openDocumentListener.dispose();
+      openDocumentListener = undefined;
+    }
+  });
+
   context.subscriptions.push(linkProvider, jumpCommand);
+
+  context.subscriptions.push({
+    dispose: () => {
+      openDocumentListener?.dispose();
+      jumpFreeWatcher?.dispose();
+      jumpManager?.dispose();
+    },
+  });
 }
 
-// This method is called when your extension is deactivated
 export function deactivate() {
-  console.log('Extension "jump-free" is now deactivated!');
+  debugLog('Extension "jump-free" is now deactivated!');
   jumpFreeWatcher?.dispose();
+  jumpManager?.dispose();
+  isInitialized = false;
+  initializationPromise = undefined;
+  jumpManager = undefined;
+  jumpFreeWatcher = undefined;
 }
