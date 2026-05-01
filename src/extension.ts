@@ -52,6 +52,7 @@ export function activate(context: vscode.ExtensionContext) {
     new JumpLinkProvider({
       pattern: JUMP_TO_PATTERN,
       command: Commands.jumpTo,
+      quickCheckPattern: 'JumpFreeTo:',
     }),
   );
 

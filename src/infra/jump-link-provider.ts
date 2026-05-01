@@ -7,19 +7,22 @@ export class JumpLinkProvider
   private _command: string;
   private _pattern: RegExp;
   private _targetKey: string;
-  private _quickCheckPattern = 'JumpFreeTo:';
+  private _quickCheckPattern: string;
   constructor({
     command,
     pattern,
     targetKey = DEFAULT_TAG_KEY,
+    quickCheckPattern,
   }: {
     command: string;
     pattern: RegExp;
     targetKey?: string;
+    quickCheckPattern: string;
   }) {
     this._command = command;
     this._pattern = pattern;
     this._targetKey = targetKey;
+    this._quickCheckPattern = quickCheckPattern;
   }
   provideDocumentLinks(document: vscode.TextDocument): vscode.DocumentLink[] {
     const links: vscode.DocumentLink[] = [];
