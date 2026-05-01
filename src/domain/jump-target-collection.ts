@@ -68,10 +68,12 @@ export class JumpTargetCollection {
   }
 
   private async _getCurrentItemList() {
-    return getJumpTargetItemList({
+    const itemList = await getJumpTargetItemList({
       rootFolderPath: this.rootPath,
       excludeFilePatterns: this._excludedFilesPatterns,
     });
+    console.log(itemList, 'getCurrentItemList');
+    return itemList;
   }
 
   private _initReady() {
@@ -102,6 +104,7 @@ export class JumpTargetCollection {
   }
 
   async onFileChange(uri: vscode.Uri) {
+    console.log(`File changed: ${uri.fsPath}`);
     await this._awaitReady();
     if (await this._shouldIgnoreFile(uri)) {
       return;
@@ -120,6 +123,7 @@ export class JumpTargetCollection {
     if (await this._shouldIgnoreFile(uri)) {
       return;
     }
+    console.log(`File delete: ${uri.fsPath}`);
     delete this._file2ItemsMap[uri.fsPath];
   }
 
